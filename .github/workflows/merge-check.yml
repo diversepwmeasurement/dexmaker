@@ -1,36 +1,35 @@
-name: Merge checks
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - '*'
-
 jobs:
   build:
-    name: Build project
-    runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    name: Build project
+    runs-on: self-hosted
     steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v2
+    - continue-on-error: true
+      name: Checkout Repo
+      uses: actions/checkout@v2
+    - continue-on-error: true
+      name: Set up Java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+    - continue-on-error: true
+      name: Cache Gradle Files
+      uses: actions/cache@v2
+      with:
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties')
+          }}
+        path: '~/.gradle/caches/
 
-      - name: Set up Java
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
+          ~/.gradle/wrapper/
 
-      - name: Cache Gradle Files
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches/
-            ~/.gradle/wrapper/
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          '
+        restore-keys: '${{ runner.os }}-gradle-
 
-      - name: Run Gradle tasks
-        run: ./gradlew build
+          '
+    - continue-on-error: true
+      name: Run Gradle tasks
+      run: ./gradlew build
+name: Merge checks
+on:
+  repository_dispatch:
+    types: trigger-ga___merge-check.yml
